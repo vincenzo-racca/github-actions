@@ -28,6 +28,7 @@ git pull
 
 # Verifica se il tag contiene "RC"
 if [[ $tag == *"RC"* ]]; then # Ramo RC
+  echo "Creating RC version $tag ..."
   # Prendi versione corrente del progetto
   current_version=$(./mvnw help:evaluate -Dexpression=project.version -q -DforceStdout)
   suffix="-SNAPSHOT"
@@ -49,6 +50,7 @@ if [[ $tag == *"RC"* ]]; then # Ramo RC
   git push origin "v$tag"
 
   if [[ $create_next_release_branch == "y" ]]; then
+    echo "Incrementing SNAPSHOT version ..."
     git checkout develop
     # Verifica se esiste il branch "next-release"
     if git rev-parse --quiet --verify next-release; then
@@ -74,6 +76,7 @@ if [[ $tag == *"RC"* ]]; then # Ramo RC
 
 
 else # Ramo RELEASE
+echo "Creating RELEASE version $tag ..."
 #  # Ottieni l'ultimo tag RC creato
 #  last_rc_tag=$(git tag -l 'v*-RC*' --sort=-v:refname | head -n 1)
 #
