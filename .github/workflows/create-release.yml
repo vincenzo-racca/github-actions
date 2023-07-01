@@ -7,14 +7,14 @@ on:
         description: 'GIT Repository project to run the workflow'
         required: true
         type: string
-      base_branch:
-        description: 'Base branch where create the tag'
-        required: true
-        type: string
       tag:
         description: 'Tag value'
         required: true
         type: string
+      increment_snapshot:
+        description: 'Choose if increment SNAPSHOt version in a branch next-release'
+        type: boolean
+        default: false
 
 permissions: write-all
 
@@ -36,5 +36,7 @@ jobs:
           git config user.email "<>"
       - name: run release script
         run: |
+          snap=''
+          if [[ ${{ inputs.increment_snapshot }} ]]; then snap=--create-next-release fi
           chmod +x script/tag-be-script.sh
-          script/tag-be-script.sh ${{ inputs.tag }}
+          script/tag-be-script.sh ${{ inputs.tag }} snap
