@@ -64,7 +64,6 @@ if [[ $tag == *"RC"* ]]; then # Ramo RC
     git commit -m "[$next_version] Incrementa versione minor nel pom.xml"
     git push origin next-release
   fi
-  git checkout develop
 
 #  # Ripristino la versione originale nel branch develop (esempio da 0.0.1-RC-1 a 0.0.1-SNAPSHOT)
 #  git checkout develop
