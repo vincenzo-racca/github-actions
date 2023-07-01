@@ -1,3 +1,5 @@
+name: Creare Release Action
+
 on:
   workflow_dispatch:
     inputs:
@@ -32,6 +34,7 @@ jobs:
         run: |
           git config user.name "GitHub Actions Bot"
           git config user.email "<>"
-      - run: |
+      - name: run release script
+        run: |
           chmod +x script/tag-be-script.sh
           script/tag-be-script.sh ${{ inputs.tag }}
