@@ -1,0 +1,36 @@
+on:
+  workflow_dispatch:
+    inputs:
+      repository:
+        description: 'GIT Repository project to run the workflow'
+        required: true
+        type: string
+      base_branch:
+        description: 'Base branch where create the tag'
+        required: true
+        type: string
+      tag:
+        description: 'Tag value'
+        required: true
+        type: string
+
+permissions: write-all
+
+jobs:
+  create-release:
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          repository: ${{ repository }}
+          ref: ${{ inputs.base_branch }}
+          fetch-depth: 0
+      - name: setup git config
+        run: |
+          git config user.name "GitHub Actions Bot"
+          git config user.email "<>"
+      - run: |
+          chmod +x tag-be-script.sh
+          ./tag-be-script.sh ${{ inputs.tag }}
