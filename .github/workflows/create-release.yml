@@ -15,6 +15,11 @@ on:
         description: 'Increment SNAPSHOT version in a branch next-release'
         type: boolean
         default: false
+      base_branch:
+        description: 'Base branch to create the TAG'
+        type: string
+        default: "develop"
+        required: false
 
 permissions: write-all
 
