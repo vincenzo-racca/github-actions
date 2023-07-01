@@ -32,5 +32,5 @@ jobs:
           git config user.name "GitHub Actions Bot"
           git config user.email "<>"
       - run: |
-          chmod +x tag-be-script.sh
-          ./tag-be-script.sh ${{ inputs.tag }}
+          chmod +x script/tag-be-script.sh
+          script/tag-be-script.sh ${{ inputs.tag }}
