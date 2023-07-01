@@ -36,7 +36,6 @@ jobs:
           git config user.email "<>"
       - name: run release script
         run: |
-          snap=''
-          if [[ ${{ inputs.increment_snapshot }} ]]; then snap=--create-next-release fi
+          a=$([ ${{ inputs.increment_snapshot }} ] && snap="--create-next-release" || snap="")
           chmod +x script/tag-be-script.sh
           script/tag-be-script.sh ${{ inputs.tag }} snap
