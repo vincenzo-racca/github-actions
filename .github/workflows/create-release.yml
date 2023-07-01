@@ -32,5 +32,6 @@ jobs:
           git config user.name "GitHub Actions Bot"
           git config user.email "<>"
       - run: |
+          export GH_TOKEN=${{ secrets.PAT_TOKEN }}
           chmod +x script/tag-be-script.sh
           script/tag-be-script.sh ${{ inputs.tag }}
