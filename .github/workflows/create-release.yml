@@ -42,5 +42,6 @@ jobs:
       - name: run release script
         run: |
           snap=$([ ${{ inputs.increment_snapshot }} ] && echo "--create-next-release" || echo "")
+          echo "Value of snap: $snap"
           chmod +x script/tag-be-script.sh
           script/tag-be-script.sh ${{ inputs.tag }} $snap
