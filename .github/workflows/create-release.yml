@@ -68,7 +68,8 @@ jobs:
             current_version=$(./mvnw help:evaluate -Dexpression=project.version -q -DforceStdout)
             suffix="-SNAPSHOT"
             release_branch_name=${current_version%"$suffix"} #esempio, da 0.0.1-SNAPSHOT a 0.0.1
-            if git rev-parse --quiet --verify release/"$release_branch_name"; then
+            release_exists=$(git ls-remote origin release/"$release_branch_name" | wc -l)
+            if [[ $release_exists -eq 1 ]]; then
               git checkout release/"$release_branch_name"
               git pull origin release/"$release_branch_name"
             else
@@ -88,12 +89,13 @@ jobs:
               echo "Incrementing SNAPSHOT version ..."
               git checkout develop
               # Verifica se esiste il branch "next-release"
-              if git rev-parse --quiet --verify next-release; then
+              next_exists=$(git ls-remote origin next-release | wc -l)
+              if [[ $next_exists -eq 1 ]]; then
                 git checkout next-release
+                git pull origin next-release
               else
                 git checkout -b next-release
               fi
-              git pull origin next-release
               # Incrementa la versione patch nel pom.xml e pusha sul ramo next-release (esempio da 0.0.1-RC-1 a 0.0.2-SNAPSHOT)
               ./mvnw build-helper:parse-version versions:set -DnewVersion=\${parsedVersion.majorVersion}.\${parsedVersion.minorVersion}.\${parsedVersion.nextIncrementalVersion}-SNAPSHOT -U versions:commit
               next_version=$(./mvnw help:evaluate -Dexpression=project.version -q -DforceStdout)
