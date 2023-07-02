@@ -111,7 +111,7 @@ jobs:
           #  git commit -m "Ripristino versione develop nel pom.xml $current_version"
           #  git push origin develop
       - name: run RELEASE flow
-        if: !contains(inputs.tag, 'RC')
+        if: !(contains(inputs.tag, 'RC'))
         run: |
           tag=${{ inputs.tag }}
           snap=$([ ${{ inputs.increment_snapshot }}  = "true" ] && echo "--create-next-release" || echo "")
