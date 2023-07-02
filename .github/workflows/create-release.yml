@@ -70,10 +70,10 @@ jobs:
             release_branch_name=${current_version%"$suffix"} #esempio, da 0.0.1-SNAPSHOT a 0.0.1
             if git rev-parse --quiet --verify release/"$release_branch_name"; then
               git checkout release/"$release_branch_name"
+              git pull origin release/"$release_branch_name"
             else
               git checkout -b release/"$release_branch_name"
             fi
-            git pull origin release/"$release_branch_name"
             git merge --no-edit develop
             # Modifica la versione del pom.xml con il tag dato in input (esempio da 0.0.1-SNAPSHOT a 0.0.1-RC-1)
             ./mvnw build-helper:parse-version versions:set -DnewVersion=$tag -U versions:commit
