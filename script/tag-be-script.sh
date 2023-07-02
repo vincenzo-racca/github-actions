@@ -53,12 +53,14 @@ if [[ $tag == *"RC"* ]]; then # Ramo RC
     echo "Incrementing SNAPSHOT version ..."
     git checkout develop
     # Verifica se esiste il branch "next-release"
-    if git rev-parse --quiet --verify next-release; then
+    next_exists=$(git ls-remote origin next-release | wc -l)
+#    if git rev-parse --quiet --verify next-release; then
+    if [[ $next_exists -eq 1 ]]; then
       git checkout next-release
+      git pull origin next-release
     else
       git checkout -b next-release
     fi
-    git pull origin next-release
     # Incrementa la versione patch nel pom.xml e pusha sul ramo next-release (esempio da 0.0.1-RC-1 a 0.0.2-SNAPSHOT)
     ./mvnw build-helper:parse-version versions:set -DnewVersion=\${parsedVersion.majorVersion}.\${parsedVersion.minorVersion}.\${parsedVersion.nextIncrementalVersion}-SNAPSHOT -U versions:commit
     next_version=$(./mvnw help:evaluate -Dexpression=project.version -q -DforceStdout)
@@ -87,13 +89,15 @@ echo "Creating RELEASE version $tag ..."
 #  fi
 # Crea il branch release/<tag_release> dall'ultimo tag RC creato, per modificare la versione del pom (esempio da 0.0.1-RC-2 a 0.0.1)
 #  git checkout tags/$last_rc_tag -b release/$tag
-  if git rev-parse --quiet --verify release/$tag; then
+  release_exists=$(git ls-remote origin release/"$release_branch_name" | wc -l)
+#  if git rev-parse --quiet --verify release/$tag; then
+  if [[ $release_exists -eq 1 ]]; then
     git checkout release/$tag
+    git pull origin release/"$release_branch_name"
   else
     echo "Branch release/$tag does not exit. Creating it from develop branch..."
     git checkout -b release/$tag
   fi
-  git pull origin release/$tag
   ./mvnw build-helper:parse-version versions:set -DnewVersion=$tag -U versions:commit
   git add pom.xml
   git commit -m "[$tag] Create Release Version"
