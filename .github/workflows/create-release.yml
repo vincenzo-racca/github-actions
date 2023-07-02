@@ -110,4 +110,60 @@ jobs:
           #  git add pom.xml
           #  git commit -m "Ripristino versione develop nel pom.xml $current_version"
           #  git push origin develop
+      - name: run RELEASE flow
+        if: contains(${{ inputs.tag }}, 'RC') != true
+        run: |
+          tag=${{ inputs.tag }}
+          snap=$([ ${{ inputs.increment_snapshot }}  = "true" ] && echo "--create-next-release" || echo "")
+          echo "Value of snap: $snap"
+          if [[ $snap == *"create-next-release"* ]]; then
+            create_next_release_branch="y"
+          else
+            create_next_release_branch="n"
+          fi
+          echo "Creating tag: $tag creating next release?: $create_next_release_branch"
+          # Esegui git fetch
+          git fetch
+          # Sposta sul ramo develop e allineati al ramo remoto
+          git checkout develop
+          git pull
+          # Verifica se il tag contiene "RC"
+          
+          echo "Creating RELEASE version $tag ..."
+          #  # Ottieni l'ultimo tag RC creato
+          #  last_rc_tag=$(git tag -l 'v*-RC*' --sort=-v:refname | head -n 1)
+          #
+          #  # Verifica se sono stati creati tag RC in precedenza
+          #  if [[ -z $last_rc_tag ]]; then
+          #    echo "Nessun tag RC trovato."
+          #    exit 1
+          #  fi
+          # Crea il branch release/<tag_release> dall'ultimo tag RC creato, per modificare la versione del pom (esempio da 0.0.1-RC-2 a 0.0.1)
+          #  git checkout tags/$last_rc_tag -b release/$tag
+          if git rev-parse --quiet --verify release/$tag; then
+            git checkout release/$tag
+          else
+            echo "Branch release/$tag does not exit. Creating it from develop branch..."
+            git checkout -b release/$tag
+          fi
+          git pull origin release/$tag
+          ./mvnw build-helper:parse-version versions:set -DnewVersion=$tag -U versions:commit
+          git add pom.xml
+          git commit -m "[$tag] Create Release Version"
+          git push origin release/$tag
+          #  gh pr create --fill --base main
+          git checkout main
+          git pull origin main
+          git merge release/$tag
+          git push origin main
+          # Crea il tag sul branch main (esempio v0.0.1)
+          #  git tag -a "v$tag" -m "Release $tag"
+          echo "Creating tag v$tag"
+          gh release create v$tag --generate-notes
+        
+          # Mergiare develop prima con main e poi con next-release
+          #  git checkout develop
+          #  git merge main
+          #  git merge next-release
+          #  git push origin develop
         
