@@ -142,11 +142,11 @@ jobs:
           #  git checkout tags/$last_rc_tag -b release/$tag
           if git rev-parse --quiet --verify release/$tag; then
             git checkout release/$tag
+            git pull origin release/$tag
           else
             echo "Branch release/$tag does not exit. Creating it from develop branch..."
             git checkout -b release/$tag
           fi
-          git pull origin release/$tag
           ./mvnw build-helper:parse-version versions:set -DnewVersion=$tag -U versions:commit
           git add pom.xml
           git commit -m "[$tag] Create Release Version"
