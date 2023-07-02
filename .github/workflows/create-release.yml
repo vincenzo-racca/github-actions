@@ -47,6 +47,14 @@ jobs:
 #          script/tag-be-script.sh ${{ inputs.tag }} $snap
       - name: run release script
         run: |
+          tag=${{ inputs.tag }}
+          snap=$([ ${{ inputs.increment_snapshot }}  = "true" ] && echo "--create-next-release" || echo "")
+          echo "Value of snap: $snap"
+          if [[ $snap == *"create-next-release"* ]]; then
+            create_next_release_branch="y"
+          else
+            create_next_release_branch="n"
+          fi
           echo "Creating tag: $tag creating next release?: $create_next_release_branch"
           # Esegui git fetch
           git fetch
