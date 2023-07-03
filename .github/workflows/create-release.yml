@@ -16,7 +16,7 @@ on:
         type: boolean
         default: false
       base_branch:
-        description: 'Base branch to create the TAG'
+        description: 'Base branch to create the RC TAG. Default is develop'
         type: string
         default: "develop"
         required: false
@@ -52,6 +52,7 @@ jobs:
           ./mvnw org.apache.maven.plugins:maven-enforcer-plugin:3.3.0:enforce -Denforcer.rules=requireReleaseDeps
           tag=${{ inputs.tag }}
           snap=$([ ${{ inputs.increment_snapshot }}  = "true" ] && echo "--create-next-release" || echo "")
+          base_branch = $([ ${{ inputs.base_branch }}  = "" ] && echo "develop" || echo "${{ inputs.base_branch }}")
           echo "Value of snap: $snap"
           if [[ $snap == *"create-next-release"* ]]; then
             create_next_release_branch="y"
@@ -61,8 +62,8 @@ jobs:
           echo "Creating tag: $tag creating next release?: $create_next_release_branch"
           # Esegui git fetch
           git fetch
-          # Sposta sul ramo develop e allineati al ramo remoto
-          git checkout develop
+          # Sposta sul ramo base_branch e allineati al ramo remoto
+          git checkout base_branch
           git pull
           # Verifica se il tag contiene "RC"
           echo "Creating RC version $tag ..."
@@ -77,18 +78,18 @@ jobs:
           else
             git checkout -b release/"$release_branch_name"
           fi
-          git merge --no-edit develop
+          git merge --no-edit base_branch
           # Modifica la versione del pom.xml con il tag dato in input (esempio da 0.0.1-SNAPSHOT a 0.0.1-RC-1)
           ./mvnw build-helper:parse-version versions:set -DnewVersion=$tag -U versions:commit
           git add pom.xml
           git commit -m "[$tag] Modifica versione nel pom.xml"
           git push origin release/"$release_branch_name"
-          # Crea il tag dal ramo develop con il prefisso "v" (esempio v0.0.1-RC-1)
+          # Crea il tag dal ramo base_branch con il prefisso "v" (esempio v0.0.1-RC-1)
           git tag -a "v$tag" -m "Release Candidate $tag"
           git push origin "v$tag"
       
           if [[ $create_next_release_branch == "y" ]]; then
-            echo "Incrementing SNAPSHOT version ..."
+            echo "Incrementing SNAPSHOT version from develop branch..."
             git checkout develop
             # Verifica se esiste il branch "next-release"
             next_exists=$(git ls-remote origin next-release | wc -l)
