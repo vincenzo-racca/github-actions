@@ -48,6 +48,8 @@ jobs:
       - name: run RC flow
         if: contains(inputs.tag, 'RC')
         run: |
+          echo "Check no snapshots dependencies"
+          ./mvnw org.apache.maven.plugins:maven-enforcer-plugin:3.3.0:enforce -Denforcer.rules=requireReleaseDeps
           tag=${{ inputs.tag }}
           snap=$([ ${{ inputs.increment_snapshot }}  = "true" ] && echo "--create-next-release" || echo "")
           echo "Value of snap: $snap"
@@ -127,7 +129,6 @@ jobs:
           # Sposta sul ramo develop e allineati al ramo remoto
           git checkout develop
           git pull
-          # Verifica se il tag contiene "RC"
           
           echo "Creating RELEASE version $tag ..."
           #  # Ottieni l'ultimo tag RC creato
@@ -147,6 +148,8 @@ jobs:
             echo "Branch release/$tag does not exit. Creating it from develop branch..."
             git checkout -b release/$tag
           fi
+          echo "Check no snapshots dependencies"
+          ./mvnw org.apache.maven.plugins:maven-enforcer-plugin:3.3.0:enforce -Denforcer.rules=requireReleaseDeps
           ./mvnw build-helper:parse-version versions:set -DnewVersion=$tag -U versions:commit
           git add pom.xml
           git commit -m "[$tag] Create Release Version"

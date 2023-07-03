@@ -28,6 +28,8 @@ git pull
 
 # Verifica se il tag contiene "RC"
 if [[ $tag == *"RC"* ]]; then # Ramo RC
+  echo "Check no snapshots dependencies"
+  ./mvnw org.apache.maven.plugins:maven-enforcer-plugin:3.3.0:enforce -Denforcer.rules=requireReleaseDeps
   echo "Creating RC version $tag ..."
   # Prendi versione corrente del progetto
   current_version=$(./mvnw help:evaluate -Dexpression=project.version -q -DforceStdout)
@@ -98,6 +100,8 @@ echo "Creating RELEASE version $tag ..."
     echo "Branch release/$tag does not exit. Creating it from develop branch..."
     git checkout -b release/$tag
   fi
+  echo "Check no snapshots dependencies"
+  ./mvnw org.apache.maven.plugins:maven-enforcer-plugin:3.3.0:enforce -Denforcer.rules=requireReleaseDeps
   ./mvnw build-helper:parse-version versions:set -DnewVersion=$tag -U versions:commit
   git add pom.xml
   git commit -m "[$tag] Create Release Version"
