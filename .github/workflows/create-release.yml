@@ -62,8 +62,8 @@ jobs:
           echo "Creating tag: $tag creating next release?: $create_next_release_branch"
           # Esegui git fetch
           git fetch
-          # Sposta sul ramo base_branch e allineati al ramo remoto
-          git checkout base_branch
+          # Sposta sul ramo $base_branch e allineati al ramo remoto
+          git checkout $base_branch
           git pull
           # Verifica se il tag contiene "RC"
           echo "Creating RC version $tag ..."
@@ -78,7 +78,7 @@ jobs:
           else
             git checkout -b release/"$release_branch_name"
           fi
-          git merge --no-edit base_branch
+          git merge --no-edit $base_branch
           # Modifica la versione del pom.xml con il tag dato in input (esempio da 0.0.1-SNAPSHOT a 0.0.1-RC-1)
           ./mvnw build-helper:parse-version versions:set -DnewVersion=$tag -U versions:commit
           git add pom.xml
