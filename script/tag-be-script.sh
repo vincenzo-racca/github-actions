@@ -91,17 +91,18 @@ echo "Creating RELEASE version $tag ..."
 #  fi
 # Crea il branch release/<tag_release> dall'ultimo tag RC creato, per modificare la versione del pom (esempio da 0.0.1-RC-2 a 0.0.1)
 #  git checkout tags/$last_rc_tag -b release/$tag
-  release_exists=$(git ls-remote origin release/"$release_branch_name" | wc -l)
+  release_exists=$(git ls-remote origin release/"$tag" | wc -l)
 #  if git rev-parse --quiet --verify release/$tag; then
   if [[ $release_exists -eq 1 ]]; then
     git checkout release/$tag
-    git pull origin release/"$release_branch_name"
+    git pull origin release/"$tag"
   else
     echo "Branch release/$tag does not exit. Creating it from develop branch..."
     git checkout -b release/$tag
   fi
   echo "Check no snapshots dependencies"
   ./mvnw org.apache.maven.plugins:maven-enforcer-plugin:3.3.0:enforce -Denforcer.rules=requireReleaseDeps
+  echo "Edit pom version to $tag"
   ./mvnw build-helper:parse-version versions:set -DnewVersion=$tag -U versions:commit
   git add pom.xml
   git commit -m "[$tag] Create Release Version"
