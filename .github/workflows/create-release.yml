@@ -85,12 +85,13 @@ jobs:
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: us-east-2
+          aws-region: eu-south-1
           role-session-name: MySessionName
       - name: run RC flow
         if: contains(inputs.tag, 'RC')
         run: |
           export CODEARTIFACT_AUTH_TOKEN=$( aws codeartifact get-authorization-token --domain $CODEARTIFACT_DOMAIN_NAME --query authorizationToken --output text )
+          echo "TOKEN: $CODEARTIFACT_AUTH_TOKEN"
           cat /tmp/maven-settings.xml
           tag=${{ inputs.tag }}
           increment_snapshot=${{ inputs.increment_snapshot }}
