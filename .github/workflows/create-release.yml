@@ -65,6 +65,7 @@ jobs:
           </mirrors>
         </settings>
       MAVEN_CONFIG: --settings /tmp/maven-settings.xml --no-transfer-progress
+      CODEARTIFACT_DOMAIN_NAME: ${{ vars.CODEARTIFACT_DOMAIN_NAME }}
     steps:
       - uses: actions/checkout@v3
         with:
