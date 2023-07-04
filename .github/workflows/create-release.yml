@@ -29,18 +29,41 @@ jobs:
     env:
       GH_TOKEN: ${{ secrets.PAT_TOKEN }}
       SETTINGS: |
-        <settings xmlns="http://maven.apache.org/SETTINGS/1.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-          xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.0.0 https://maven.apache.org/xsd/settings-1.0.0.xsd">
-          <localRepository/>
-          <interactiveMode/>
-          <offline/>
-          <pluginGroups/>
-          <servers/>
-          <mirrors/>
-          <proxies/>
-          <profiles/>
-          <activeProfiles/>
-        </settings>
+        <settings xmlns="http://maven.apache.org/SETTINGS/1.0.0"
+                        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                        xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.0.0
+                        http://maven.apache.org/xsd/settings-1.0.0.xsd">
+                        <profiles>
+                          <profile>
+                            <id>ci-profile</id>
+                            <activation>
+                             <property><name>env.CODEBUILD_CI</name></property>
+                            </activation>
+                            <repositories>
+                                <repository>
+                                <id>pn-codeartifact-repo</id>
+                                <name>AWS Code Artifact</name>
+                                <url>https://${env.CODEARTIFACT_DOMAIN_FULL}/maven/${env.CODEARTIFACT_REPO}/</url>
+                              </repository>
+                            </repositories>
+                          </profile>
+                        </profiles>
+                        <servers>
+                          <server>
+                            <id>pn-codeartifact</id>
+                            <username>aws</username>
+                            <password>${env.CODEARTIFACT_AUTH_TOKEN}</password>
+                          </server>
+                        </servers>
+                        <mirrors>
+                          <mirror>
+                            <id>pn-codeartifact</id>
+                            <name>pn-codeartifact</name>
+                            <url>https://${env.CODEARTIFACT_DOMAIN_FULL}/maven/${env.CODEARTIFACT_REPO}/</url>
+                            <mirrorOf>*</mirrorOf>
+                          </mirror>
+                        </mirrors>
+                      </settings>
       MAVEN_CONFIG: --settings /tmp/maven-settings.xml --no-transfer-progress
     steps:
       - uses: actions/checkout@v3
@@ -57,9 +80,17 @@ jobs:
         run: |
           echo $SETTINGS > /tmp/maven-settings.xml
           cat /tmp/maven-settings.xml
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-2
+          role-session-name: MySessionName
       - name: run RC flow
         if: contains(inputs.tag, 'RC')
         run: |
+          export CODEARTIFACT_AUTH_TOKEN=$( aws codeartifact get-authorization-token --domain $CODEARTIFACT_DOMAIN_NAME --query authorizationToken --output text )
           cat /tmp/maven-settings.xml
           tag=${{ inputs.tag }}
           increment_snapshot=${{ inputs.increment_snapshot }}
