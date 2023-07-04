@@ -28,6 +28,42 @@ jobs:
     runs-on: ubuntu-latest
     env:
       GH_TOKEN: ${{ secrets.PAT_TOKEN }}
+      SETTINGS: |
+        <settings xmlns="http://maven.apache.org/SETTINGS/1.0.0"
+            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+            xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.0.0
+            http://maven.apache.org/xsd/settings-1.0.0.xsd">
+            <profiles>
+              <profile>
+                <id>ci-profile</id>
+                <activation>
+                 <property><name>${{ vars.CODEBUILD_CI }}</name></property>
+                </activation>
+                <repositories>
+                    <repository>
+                    <id>pn-codeartifact-repo</id>
+                    <name>AWS Code Artifact</name>
+                    <url>https://${{ vars.CODEARTIFACT_DOMAIN_FULL }}/maven/${{ vars.CODEARTIFACT_REPO }}/</url>
+                  </repository>
+                </repositories>
+              </profile>
+            </profiles>
+            <servers>
+              <server>
+                <id>pn-codeartifact</id>
+                <username>aws</username>
+                <password>${{ secrets.CODEARTIFACT_AUTH_TOKEN }}</password>
+              </server>
+            </servers>
+            <mirrors>
+              <mirror>
+                <id>pn-codeartifact</id>
+                <name>pn-codeartifact</name>
+                <url>https://${{ vars.CODEARTIFACT_DOMAIN_FULL }}/maven/${{ vars.CODEARTIFACT_REPO }}/</url>
+                <mirrorOf>*</mirrorOf>
+              </mirror>
+            </mirrors>
+          </settings>
     steps:
       - uses: actions/checkout@v3
         with:
@@ -42,6 +78,9 @@ jobs:
       - name: run RC flow
         if: contains(inputs.tag, 'RC')
         run: |
+          echo "AFTER SETTINGS: $SETTINGS"
+          echo $SETTINGS > /tmp/maven-settings.xml
+          cat /tmp/maven-settings.xml
           tag=${{ inputs.tag }}
           increment_snapshot=${{ inputs.increment_snapshot }}
           base_branch=$([ ${{ inputs.base_branch }}  = "" ] && echo "develop" || echo "${{ inputs.base_branch }}")
