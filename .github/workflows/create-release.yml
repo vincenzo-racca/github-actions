@@ -1,4 +1,4 @@
-name: Creare Java Release Action
+name: Create Java Release Action for AWS CodeArtifact
 
 on:
   workflow_dispatch:
@@ -89,13 +89,17 @@ jobs:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: eu-south-1
-          role-session-name: MySessionName
+          role-session-name: GitHubReleaseSession
+      - name: Set up JDK
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'corretto'
+          java-version: '17'
+          cache: 'maven'
       - name: run RC flow
         if: contains(inputs.tag, 'RC')
         run: |
           export CODEARTIFACT_AUTH_TOKEN=$( aws codeartifact get-authorization-token --domain $CODEARTIFACT_DOMAIN_NAME --query authorizationToken --output text )
-          echo "TOKEN: $CODEARTIFACT_AUTH_TOKEN"
-          cat /tmp/maven-settings.xml
           tag=${{ inputs.tag }}
           increment_snapshot=${{ inputs.increment_snapshot }}
           base_branch=$([ ${{ inputs.base_branch }}  = "" ] && echo "develop" || echo "${{ inputs.base_branch }}")
@@ -132,6 +136,7 @@ jobs:
       - name: run RELEASE flow
         if: "!contains(inputs.tag, 'RC')"
         run: |
+          export CODEARTIFACT_AUTH_TOKEN=$( aws codeartifact get-authorization-token --domain $CODEARTIFACT_DOMAIN_NAME --query authorizationToken --output text )
           tag=${{ inputs.tag }}
           echo "Creating RELEASE tag: $tag"
           # Esegui git fetch
@@ -162,11 +167,12 @@ jobs:
           git push origin main
           # Crea il tag sul branch main (esempio v0.0.1)
           echo "Creating tag v$tag"
-          gh release create v$tag --generate-notes
+          gh release create v$tag --generate-notes --target main
 
       - name: run increment SNAPSHOT
         if: inputs.increment_snapshot
         run: |
+          export CODEARTIFACT_AUTH_TOKEN=$( aws codeartifact get-authorization-token --domain $CODEARTIFACT_DOMAIN_NAME --query authorizationToken --output text )
           echo "Incrementing patch SNAPSHOT version from develop branch..."
           git checkout develop
           # Verifica se esiste il branch "next-release"
